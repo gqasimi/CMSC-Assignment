@@ -1,0 +1,418 @@
+---
+title: "Deliverable 12 - Access Control Management System (ACMS)"
+author: "Ghulam Mujtaba Qasimi"
+date: "12/02/2024"
+format:
+  html:
+    theme: cosmo
+    toc: true
+    embed-resources: true
+    code-copy: true
+---
+
+# Links
+ GitHub Repository: [Insert link here]
+ Video Presentation: [Insert link here]
+
+# Introduction
+This report documents the final implementation of the Access Control Management System (ACMS),
+developed as part of the semester project for CMSC 408. The ACMS is a robust role-based system
+designed to manage users, roles, permissions, and their relationships. It incorporates CRUD operations and a web interface for managing access and generating reports.
+This project showcases database design, implementation, and integration with a Flask-based web interface.
+
+# Database Design
+Schema Overview
+The ACMS database is designed to enforce a role-based access control (RBAC) model. It consists of the following core tables:
+
+# Users: 
+Stores user information, including credentials and status.
+
+# Roles: 
+Manages user roles, such as Admin, Manager, or Employee.
+
+# Permissions:
+ Defines access permissions for system resources.
+
+# Role_Permissions: 
+ Links roles to their permissions.
+
+# User_Roles:
+ Maps users to their assigned roles.
+
+# Audit_Log:
+ Tracks changes made to the system.
+
+# Reports: 
+Stores pre-defined SQL queries for generating dynamic reports.
+
+# Updated Schema
+The updated schema includes enhancements such as:
+
+# Activity_Log: 
+Tracks CRUD operations for auditing.
+
+# Soft Deletes: 
+Adds a deleted_at column to support soft deletes for key tables.
+
+# Chen Diagram
+```{mermaid}
+erDiagram
+    USERS {
+        int UserID PK
+        string Username
+        string Email
+        string Password
+        string Status
+        datetime CreatedAt
+    }
+    ROLES {
+        int RoleID PK
+        string RoleName
+        string Description
+    }
+    PERMISSIONS {
+        int PermissionID PK
+        string PermissionName
+        string Description
+    }
+    ROLE_PERMISSIONS {
+        int RoleID FK
+        int PermissionID FK
+    }
+    USER_ROLES {
+        int UserID FK
+        int RoleID FK
+    }
+    USERS ||--o{ USER_ROLES : "Assigned Role"
+    ROLES ||--o{ USER_ROLES : "Includes"
+    ROLES ||--o{ ROLE_PERMISSIONS : "Defines Permission"
+    PERMISSIONS ||--o{ ROLE_PERMISSIONS : "Assigned Permission"
+```
+# Crow's Foot Diagram
+```{mermaid}
+erDiagram
+    USERS {
+        int UserID PK
+        string Username
+        string Email
+        string Password
+        string Status
+        datetime CreatedAt
+    }
+    ROLES {
+        int RoleID PK
+        string RoleName
+        string Description
+    }
+    PERMISSIONS {
+        int PermissionID PK
+        string PermissionName
+        string Description
+    }
+    USERS ||--o{ USER_ROLES : "Assigned Role"
+    ROLES ||--o{ USER_ROLES : "Includes"
+    ROLES ||--o{ ROLE_PERMISSIONS : "Has Permission"
+    PERMISSIONS ||--o{ ROLE_PERMISSIONS : "Assigned Permission"
+```
+
+# Query 1: List All Users
+```sql
+SELECT * FROM Users;
+```
+
+3 Query 2: Roles Assigned to Each User
+```sql
+SELECT Users.username AS Username, Roles.role_name AS RoleName
+FROM Users
+JOIN User_Roles ON Users.user_id = User_Roles.user_id
+JOIN Roles ON User_Roles.role_id = Roles.role_id;
+```
+# Query 3: Permissions by Role
+```sql
+SELECT Roles.role_name AS RoleName, Permissions.permission_name AS PermissionName
+FROM Roles
+JOIN Role_Permissions ON Roles.role_id = Role_Permissions.role_id
+JOIN Permissions ON Role_Permissions.permission_id = Permissions.permission_id;
+```
+
+# Query 4: Total Number of Users in the System
+```sql
+SELECT COUNT(*) AS TotalUsers FROM Users;
+```
+
+# Query 5: Total Number of Roles
+```sql
+SELECT COUNT(*) AS TotalRoles FROM Roles;
+```
+
+# Query 6: Total Number of Permissions
+```sql
+SELECT COUNT(*) AS TotalPermissions FROM Permissions;
+```
+
+# Query 7: Users Without Any Assigned Roles
+```sql
+SELECT Users.username AS Username
+FROM Users
+LEFT JOIN User_Roles ON Users.user_id = User_Roles.user_id
+WHERE User_Roles.role_id IS NULL;
+```
+
+# Query 8: Roles Without Any Permissions
+```sql
+SELECT Roles.role_name AS RoleName
+FROM Roles
+LEFT JOIN Role_Permissions ON Roles.role_id = Role_Permissions.role_id
+WHERE Role_Permissions.permission_id IS NULL;
+```
+
+# Query 9: List All Permissions for a Specific Role (e.g., Admin)
+```sql
+SELECT Permissions.permission_name AS PermissionName
+FROM Permissions
+JOIN Role_Permissions ON Permissions.permission_id = Role_Permissions.permission_id
+JOIN Roles ON Role_Permissions.role_id = Roles.role_id
+WHERE Roles.role_name = 'Admin';
+```
+
+# Query 10: Audit Log - Actions Performed by Users
+```sql
+SELECT Audit_Log.action AS Action, Audit_Log.timestamp AS Timestamp, Users.username AS Username
+FROM Audit_Log
+JOIN Users ON Audit_Log.user_id = Users.user_id
+ORDER BY Audit_Log.timestamp DESC;
+```
+
+# Query 11: List Users Created After a Specific Date
+```sql
+SELECT *
+FROM Users
+WHERE created_at > '2024-01-01';
+```
+
+# Query 12: Count of Users per Role
+```sql
+SELECT Roles.role_name AS RoleName, COUNT(User_Roles.user_id) AS TotalUsers
+FROM Roles
+LEFT JOIN User_Roles ON Roles.role_id = User_Roles.role_id
+GROUP BY Roles.role_name;
+```
+
+# Query 13: Count of Permissions per Role
+```sql
+SELECT Roles.role_name AS RoleName, COUNT(Role_Permissions.permission_id) AS TotalPermissions
+FROM Roles
+LEFT JOIN Role_Permissions ON Roles.role_id = Role_Permissions.role_id
+GROUP BY Roles.role_name;
+```
+
+# Query 14: Recently Created Users
+```sql
+SELECT *
+FROM Users
+WHERE created_at >= NOW() - INTERVAL 30 DAY;
+```
+
+# Query 15: Active Users
+```sql
+SELECT *
+FROM Users
+WHERE status = 'active'
+```
+
+# Query 16: Inactive Users
+```sql
+SELECT *
+FROM Users
+WHERE status = 'inactive';
+```
+
+# Query 17: Roles Assigned to a Specific User 
+```sql
+SELECT Roles.role_name AS RoleName
+FROM Roles
+JOIN User_Roles ON Roles.role_id = User_Roles.role_id
+JOIN Users ON User_Roles.user_id = Users.user_id
+WHERE Users.username = 'JohnDoe';
+```
+
+# Query 18: Permissions Assigned to a Specific User
+```sql
+SELECT DISTINCT Permissions.permission_name AS PermissionName
+FROM Permissions
+JOIN Role_Permissions ON Permissions.permission_id = Role_Permissions.permission_id
+JOIN Roles ON Role_Permissions.role_id = Roles.role_id
+JOIN User_Roles ON Roles.role_id = User_Roles.role_id
+JOIN Users ON User_Roles.user_id = Users.user_id
+WHERE Users.username = 'JaneSmith';
+```
+
+# Query 19: Roles with the Most Users
+```sql
+SELECT Roles.role_name AS RoleName, COUNT(User_Roles.user_id) AS TotalUsers
+FROM Roles
+JOIN User_Roles ON Roles.role_id = User_Roles.role_id
+GROUP BY Roles.role_name
+ORDER BY TotalUsers DESC
+LIMIT 1;
+```
+
+# Query 20: Permissions Never Assigned
+```sql
+SELECT Permissions.permission_name AS PermissionName
+FROM Permissions
+LEFT JOIN Role_Permissions ON Permissions.permission_id = Role_Permissions.permission_id
+WHERE Role_Permissions.role_id IS NULL;
+```
+
+# Web Interface
+  Tools and Technologies
+  Backend: Flask (Python) for creating and managing the RESTful API for CRUD operations.
+  Frontend: HTML5 for creating basic user interface components.
+  Database: MySQL (Cloud-hosted) for storing and managing data.
+  ORM: SQLAlchemy for managing database interactions and schema generation.
+  Template Engine: Jinja2 for dynamic rendering of HTML templates within Flask.
+  Rendering Tool: Quarto for generating and rendering the project report in HTML format.
+  Testing Tool: Postman for testing API endpoints and verifying CRUD operations.
+
+# Screenshots
+ 1 Screenshots
+ Description: Displays a summary of users, roles, and system activities.
+ ## Query Outputs
+
+### Query 1 Output
+![Query 1 Output](assets/query1_output.jpeg)
+
+### Query 2 Output
+![Query 2 Output](assets/query2_output.jpeg)
+
+### Query 3 Output
+![Query 3 Output](assets/query3_output.jpeg)
+
+### Query 4 Output
+![Query 4 Output](assets/query4_output.jpeg)
+
+### Query 5 Output
+![Query 5 Output](assets/query5_output.jpeg)
+
+### Query 6 Output
+![Query 6 Output](assets/query6_output.jpeg)
+
+### Query 7 Output
+![Query 7 Output](assets/query7_output.jpeg)
+
+### Query 8 Output
+![Query 8 Output](assets/query8_output.jpeg)
+
+### Query 9 Output
+![Query 9 Output](assets/query9_output.jpeg)
+
+### Query 10 Output
+![Query 10 Output](assets/query10_output.jpeg)
+
+### Query 11 Output
+![Query 11 Output](assets/query11_output.jpeg)
+
+### Query 12 Output
+![Query 12 Output](assets/query12_output.jpeg)
+
+### Query 13 Output
+![Query 13 Output](assets/query13_output.jpeg)
+
+### Query 14 Output
+![Query 14 Output](assets/query14_output.jpeg)
+
+### Query 15 Output
+![Query 15 Output](assets/query15_output.jpeg)
+
+### Query 16 Output
+![Query 16 Output](assets/query16_output.jpeg)
+
+### Query 17 Output
+![Query 17 Output](assets/query17_output.jpeg)
+
+### Query 18 Output
+![Query 18 Output](assets/query18_output.jpeg)
+
+### Query 19 Output
+![Query 19 Output](assets/query19_output.jpeg)
+
+### Query 20 Output
+![Query 20 Output](assets/query20_output.jpeg)
+
+## 2 User Management:
+
+**Description**: Allows CRUD operations on users.
+
+**POST Operation**: Used to create new users.
+![POST Operation](assets/post_users.jpeg)
+Description: This screenshot shows the creation of a new user via the web interface.
+
+**GET Operation**: Used to retrieve all users.
+![GET Operation](assets/get_users.jpeg)
+Description: This screenshot displays the fetched users, showing the JSON response for all users.
+
+**PUT Operation**: Used to update an existing user.
+![PUT Operation](assets/put_users.jpeg)
+Description: This screenshot shows the updated user information after a PUT request.
+
+**DELETE Operation**: Used to delete a user.
+![DELETE Operation](assets/delete_users.jpeg)
+Description: This screenshot shows the deletion of a user from the system.
+
+# 3 Reports Page
+    Description: Dynamically generates reports based on pre-defined queries.
+
+  # Reports Page
+    The Reports page provides 20 dynamic queries, selectable from a dropdown menu. Users can view real-time data insights.
+
+  # Testing and Results
+    Database Validation
+
+# 1 Schema Test:
+    Verified schema integrity using SHOW TABLES and DESCRIBE commands.
+
+# 2 Sample Data:
+    Inserted test records for Users, Roles, and Permissions.
+
+# 3 CRUD Operations:
+    Successfully created, updated, and deleted records for all entities
+
+# Web Interface Validation
+  1 Accessed the Flask web interface and performed CRUD operations for:
+    Users
+
+    Roles 
+
+    Permissions
+    Successfully genetaed reports via the report page.
+
+ #  Reflection
+
+   Challenges
+   Initial issues with connecting the Flask app to the Cloud MySQL database due to incorrect credentials.
+   Designing a Reports page that dynamically handles SQL queries was more complex than anticipated.
+   Successes
+   Successfully implemented a fully functional RBAC system.
+   Achieved integration of database and web interface with dynamic reporting.
+
+# Future Considerations 
+
+  1 Enhanced Security:
+  Implement two-factor authentication for user login.
+  Encrypt sensitive data like passwords using industry best practices
+
+  2 calability:
+    Add support for hierarchical roles and permissions.
+    Optimize queries for large datasets.
+
+  3 Improved Reporting:
+  A llow users to define custom reports via the web interface.
+
+# References
+   
+   Flask Documentation: https://flask.palletsprojects.com/
+
+   SQLAlchemy: https://www.sqlalchemy.org/
+
+   Postman: https//postman.com/
