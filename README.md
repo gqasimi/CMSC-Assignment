@@ -1,36 +1,45 @@
-"# CMSC-Assignment"
+## Deliverable 12: Access Control Management System (ACMS) by Ghulam Mujtaba Qasimi
 
-# CMSC 408 Assignment
+This deliverable involves designing, implementing, and documenting an Access Control Management System (ACMS) database.
+The tasks include creating a schema, performing CRUD operations, running queries, and generating a report using Quarto.
 
-## Overview
+## Deliverable Tasks
 
-This repository contains the files and documentation for the first assignment of CMSC 408. The assignment involves writing a report for my future self, which includes:
+The following steps were completed as part of this project:
+1 - Database Schema:
+Designed and implemented the ACMS schema in MySQL, including tables for Users, Roles, Permissions, Role_Permissions, User_Roles, and Audit_Log.
 
-1. An overview of nine larger categories in data engineering.
-2. Detailed descriptions of three smaller categories that are of particular interest to me.
-3. A reflection on the assignment process.
+2 - CRUD Operations:
+Developed a Flask application to perform Create, Retrieve, Update, and Delete operations for Users, Roles, and Permissions.
+Verified CRUD operations using Postman and screenshots were documented.
 
-## Tools and Setup
+3 - Query Testing:
+Tested 20 queries on the ACMS schema, including user-role relationships, permissions per role, and audit log details.
+Documented query outputs with screenshots for each.
 
-To complete this assignment, the following tools were used:
+4 - Report Generation:
+Created the report.qmd file to document the project.
+Rendered the report into an HTML file using Quarto, including screenshots of CRUD operations and query results.
 
-- **VS Code**: For editing and managing files.
-- **Git**: For version control and managing the repository.
-- **Quarto**: For rendering `.qmd` files into HTML documents.
+5 - Video Presentation:
+Recorded a narrated video to demonstrate the system in action, covering CRUD operations, query outputs, and reflections on the project.
 
-## Instructions
+## Files and Folders
 
-1. Edit the `report.qmd` file to include the required content.
-2. Render the `report.qmd` file to `report.html` using Quarto.
-3. Submit the `report.html` to Canvas.
-4. Push the updated repository to GitHub and submit it to Gradescope.
+All necessary files for this deliverable are stored in the ./report folder:
 
-## Repository Structure
+report.qmd: Main Quarto file documenting the project.
+explore.qmd: Exploration file for database connection and initial setup.
+report.html: Final rendered HTML report.
+assets/: Folder containing all images and screenshots (CRUD operations and query results).
+app.py: Flask application for CRUD operations.
+.env: Environment variables for database connection.
 
-- `README.md`: This file, providing an overview of the assignment and instructions.
-- `report.qmd`: The main report file that needs to be edited and rendered.
-- `report.html`: The rendered HTML file to be submitted.
+## GitHub Repository
 
-## Reflection
+The complete repository for this project can be found at:
 
-This section will be updated later to include a reflection on the assignment.
+## Reflection and Future Considerations
+
+The project successfully met all objectives, including database design, CRUD operations, and query testing.
+Future enhancements could include implementing a more advanced web interface with Bootstrap and adding user authentication for better security.
