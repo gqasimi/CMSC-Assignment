@@ -37,7 +37,7 @@ app.py: Flask application for CRUD operations.
 
 ## GitHub Repository
 
-The complete repository for this project can be found at:
+The complete repository for this project can be found at: <https://github.com/gqasimi/CMSC-Assignment>
 
 ## Reflection and Future Considerations
 
